@@ -10,10 +10,14 @@ import UIKit
 class CustomTouchView: UIView {
     var settings: GameSettings?
     var touchesCount = 0
-    var maxTouches = 3 // <--- добавляем лимит касаний
     var didReachMaxTouches: (() -> Void)? // <--- callback, чтобы показать новую вью
 
-    private var touchLayers: [ObjectIdentifier: CALayer] = [:]
+    struct TouchInfo {
+        let layer: CALayer
+        let playerNumber: Int
+    }
+
+    private var touchLayers: [ObjectIdentifier: TouchInfo] = [:]
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -30,8 +34,8 @@ class CustomTouchView: UIView {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
             // Проверяем, можно ли ещё добавлять касания
-            if touchesCount >= maxTouches {
-                return // больше не обрабатываем касания
+            if let maxPlayer = settings?.numberOfPlayers, touchesCount >= maxPlayer {
+                return
             }
             
             touchesCount += 1
@@ -49,7 +53,7 @@ class CustomTouchView: UIView {
             self.layer.addSublayer(backgroundLayer)
 
             let textLayer = CATextLayer()
-            textLayer.string = "\(touchesCount)"  // показываем текущий номер касания
+            textLayer.string = "\(touchesCount)"
             textLayer.alignmentMode = .center
             textLayer.foregroundColor = UIColor.white.cgColor
             textLayer.fontSize = 40
@@ -58,10 +62,10 @@ class CustomTouchView: UIView {
 
             backgroundLayer.addSublayer(textLayer)
 
-            touchLayers[id] = backgroundLayer
+            touchLayers[id] = TouchInfo(layer: backgroundLayer, playerNumber: touchesCount)
 
             // Если достигли максимального количества касаний
-            if touchesCount == maxTouches {
+            if let maxPlayer = settings?.numberOfPlayers, touchesCount == maxPlayer {
                 didReachMaxTouches?() // вызываем callback
             }
         }
@@ -70,7 +74,7 @@ class CustomTouchView: UIView {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
             let id = ObjectIdentifier(touch)
-            guard let layer = touchLayers[id] else { continue }
+            guard let layer = touchLayers[id]?.layer else { continue }
             
             let newPosition = touch.location(in: self)
             
@@ -84,6 +88,7 @@ class CustomTouchView: UIView {
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let maxPlayer = settings?.numberOfPlayers, touchesCount != maxPlayer else { return }
         removeLayers(for: touches)
     }
 
@@ -95,27 +100,38 @@ class CustomTouchView: UIView {
         for touch in touches {
             touchesCount -= 1
             let id = ObjectIdentifier(touch)
-            touchLayers[id]?.removeFromSuperlayer()
+            touchLayers[id]?.layer.removeFromSuperlayer()
             touchLayers.removeValue(forKey: id)
         }
     }
     
-    func pickRandomTouchLayer() -> (id: ObjectIdentifier, layer: CALayer, playerNumber: Int)? {
+    func pickRandomTouchLayer() -> (id: ObjectIdentifier, info: TouchInfo)? {
         guard !touchLayers.isEmpty else { return nil }
         
         let keys = Array(touchLayers.keys)
-        if let randomKey = keys.randomElement(), let layer = touchLayers[randomKey] {
-            let index = keys.firstIndex(of: randomKey) ?? 0
-            return (id: randomKey, layer: layer, playerNumber: index + 1)
+        if let randomKey = keys.randomElement(), let info = touchLayers[randomKey] {
+            return (id: randomKey, info: info)
         }
         return nil
     }
 
     func removeTouchLayer(for id: ObjectIdentifier) {
-        if let layer = touchLayers[id] {
+        if let layer = touchLayers[id]?.layer {
             layer.removeFromSuperlayer()
             touchLayers.removeValue(forKey: id)
         }
+    }
+    
+    func remainingTouchInfos() -> [TouchInfo] {
+        return touchLayers.map { $0.value }
+    }
+    
+    func reset() {
+        for (_, info) in touchLayers {
+            info.layer.removeFromSuperlayer()
+        }
+        touchLayers.removeAll()
+        touchesCount = 0
     }
 
 }

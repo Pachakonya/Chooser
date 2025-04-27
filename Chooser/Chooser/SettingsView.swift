@@ -9,8 +9,6 @@ import SwiftUI
 struct SettingsView: View {
     @State private var selectedPlayers = 2
     @State private var addTasks = false
-    @State private var losingPlayerLeaves = true
-    @State private var selectedLevel = "Super Easy"
     @State private var selectedTime = 1
 
     @State private var settings: GameSettings? = nil
@@ -29,18 +27,14 @@ struct SettingsView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        RadioButtonSection(title: "Players", options: [2, 3], selection: $selectedPlayers) { value in
+                        RadioButtonSection(title: ConstantValues.players, options: ConstantValues.playrs, selection: $selectedPlayers) { value in
                             Text("\(value) players")
                         }
-                        RadioButtonSection(title: "Do you mind adding tasks?", options: [false, true], selection: $addTasks) { value in
+                        RadioButtonSection(title: ConstantValues.tasksQuestion, options: ConstantValues.taskOptions, selection: $addTasks) { value in
                             Text(value ? "Yes, add" : "No, thanks")
                         }
-                        ToggleSection(title: "Losing player leaves", isOn: $losingPlayerLeaves)
-                        RadioButtonSection(title: "Level", options: ["Super Easy", "Easy"], selection: $selectedLevel) { value in
-                            Text(value)
-                        }
-                        RadioButtonSection(title: "Time to complete", options: [1, 5], selection: $selectedTime) { value in
-                            Text("\(value) min")
+                        RadioButtonSection(title: ConstantValues.timeToComplete, options: ConstantValues.timesToComplete, selection: $selectedTime) { value in
+                            Text("\(value) sec")
                         }
                     }
                     .padding()
@@ -51,8 +45,6 @@ struct SettingsView: View {
                     settings = GameSettings(
                         numberOfPlayers: selectedPlayers,
                         addTasks: addTasks,
-                        losingPlayerLeaves: losingPlayerLeaves,
-                        level: selectedLevel,
                         timeToComplete: selectedTime
                     )
                 }) {
@@ -68,7 +60,11 @@ struct SettingsView: View {
                 .padding(.vertical, 10)
                 .background(Color.white)
                 .navigationDestination(item: $settings) { settings in
-                    CountdownView(settings: settings)
+                    if settings.addTasks {
+                        TasksModeView(settings: settings)
+                    } else {
+                        SimpleModeView(settings: settings)
+                    }
                 }
             }
             .background(Color.white)
@@ -83,8 +79,6 @@ struct GameSettings: Identifiable, Hashable {
     let id = UUID()
     let numberOfPlayers: Int
     let addTasks: Bool
-    let losingPlayerLeaves: Bool
-    let level: String
     let timeToComplete: Int
 }
 
@@ -99,8 +93,6 @@ struct GameView: View {
 
             Text("Players: \(settings.numberOfPlayers)")
             Text("Add Tasks: \(settings.addTasks ? "Yes" : "No")")
-            Text("Losing player leaves: \(settings.losingPlayerLeaves ? "Yes" : "No")")
-            Text("Level: \(settings.level)")
             Text("Time: \(settings.timeToComplete) min")
 
             Spacer()
@@ -163,3 +155,5 @@ struct ToggleSection: View {
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
+
+

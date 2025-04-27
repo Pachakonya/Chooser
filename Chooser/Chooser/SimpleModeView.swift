@@ -1,17 +1,19 @@
 //
-//  CountdownView.swift
+//  SimpleModeView.swift
 //  Chooser
 //
 //  Created by Dastan Sugirbay on 27.04.2025.
 //
-//
+
 import SwiftUI
 
-struct CountdownView: View {
+struct SimpleModeView: View {
+    @State private var isGameOver = false
     @State private var isCompleted = false
-    @State private var timerValue = 10
+    @State private var timerValue = 3
     @State private var timer: Timer? = nil
     @State private var customTouchView: CustomTouchView? = nil
+    @State private var winnerPlayerNumber: Int? = nil
     
     @State private var selectedPlayerNumber: Int? = nil
     @State private var selectedTouchId: ObjectIdentifier? = nil
@@ -60,36 +62,65 @@ struct CountdownView: View {
                         .transition(.scale)
                 }
             }
-        }
-    }
-
-    private func startTimer() {
-        timer?.invalidate()
-        timerValue = 10
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
-            if timerValue > 0 {
-                timerValue -= 1
-            } else {
-                t.invalidate()
-                timer = nil
-                
-                if let result = customTouchView?.pickRandomTouchLayer() {
-                    selectedPlayerNumber = result.playerNumber
-                    selectedTouchId = result.id
-                    
-                    // После паузы 2 секунды — удаляем
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        if let id = selectedTouchId {
-                            customTouchView?.removeTouchLayer(for: id)
-                            selectedPlayerNumber = nil
-                            selectedTouchId = nil
-                            isCompleted = false
-                        }
-                    }
-                } else {
-                    isCompleted = false
+        }.fullScreenCover(isPresented: $isGameOver) {
+            if let winner = winnerPlayerNumber {
+                WinnerView(winnerNumber: winner) {
+                    restartGame()
                 }
             }
         }
     }
+    
+    private func restartGame() {
+        winnerPlayerNumber = nil
+        isCompleted = false
+        timerValue = 3
+        selectedPlayerNumber = nil
+        isGameOver = false
+        customTouchView?.reset()
+    }
+
+    private func startTimer() {
+        timer?.invalidate()
+        timerValue = 3
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
+            if timerValue > 1 {
+                timerValue -= 1
+            } else {
+                t.invalidate()
+                timer = nil
+
+                eliminateRandomPlayer()
+            }
+        }
+    }
+    
+    private func eliminateRandomPlayer() {
+        guard let result = customTouchView?.pickRandomTouchLayer() else {
+            isCompleted = false
+            return
+        }
+
+        selectedPlayerNumber = result.info.playerNumber
+        selectedTouchId = result.id
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            if let id = selectedTouchId {
+                customTouchView?.removeTouchLayer(for: id)
+                selectedPlayerNumber = nil
+                selectedTouchId = nil
+
+                if let remaining = customTouchView?.remainingTouchInfos(), remaining.count == 1 {
+                    // Игра окончена, остался один
+                    winnerPlayerNumber = remaining.first?.playerNumber
+                    isGameOver = true
+                } else {
+                    // Продолжаем игру дальше
+                    startTimer()
+                }
+            }
+        }
+    }
+
+
 }
