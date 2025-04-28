@@ -24,3 +24,23 @@ To get started with the project, clone this repository:
 
 ```bash
 git clone https://github.com/yourusername/Chooser.git
+```
+
+## Design and Development Process
+
+The app was built using SwiftUI to create a modern and responsive interface. The core logic for managing touch interactions and random player selection is handled in CustomTouchView.swift, which processes multi-touch inputs and visually represents them. Game settings, such as the number of players, time limits, and tasks, are managed through the SettingsView.swift and ConstantValues.swift.
+
+## Unique Approaches or Methodologies Used
+
+The app integrates UIImpactFeedbackGenerator to provide haptic feedback when players interact with the screen, enhancing the overall user experience.
+
+## Trade-offs Made During Development
+
+One of the main trade-offs was limiting the number of touches to match the number of players, to prevent performance issues and ensure smooth gameplay. Though additional touches could have been allowed, the game’s simplicity and performance were prioritized.
+
+## Known Issues or Problems
+- The Task Mode does not yet include a dynamic task generator beyond the predefined tasks in ConstantValues.swift.
+
+## Why This Technical Stack Was Chosen
+
+SwiftUI was chosen for its modern and declarative syntax, which allows for quick development and seamless integration with other iOS frameworks. It also provides powerful tools to manage dynamic layouts, which is ideal for building interactive, touch-based apps.
