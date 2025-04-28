@@ -4,12 +4,14 @@
 //
 //  Created by Dastan Sugirbay on 27.04.2025.
 //
+
 import SwiftUI
 
 struct SettingsView: View {
     @State private var selectedPlayers = 2
     @State private var addTasks = false
-    @State private var selectedTime = 1
+    @State private var losingPlayerLeaves = true
+    @State private var selectedTime = 10
 
     @State private var settings: GameSettings? = nil
 
@@ -27,12 +29,13 @@ struct SettingsView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        RadioButtonSection(title: ConstantValues.players, options: ConstantValues.playrs, selection: $selectedPlayers) { value in
+                        RadioButtonSection(title: ConstantValues.players, options: ConstantValues.playersCount, selection: $selectedPlayers) { value in
                             Text("\(value) players")
                         }
                         RadioButtonSection(title: ConstantValues.tasksQuestion, options: ConstantValues.taskOptions, selection: $addTasks) { value in
                             Text(value ? "Yes, add" : "No, thanks")
                         }
+                        ToggleSection(title: ConstantValues.losingPlayerLeaves, isOn: $losingPlayerLeaves)
                         RadioButtonSection(title: ConstantValues.timeToComplete, options: ConstantValues.timesToComplete, selection: $selectedTime) { value in
                             Text("\(value) sec")
                         }
@@ -45,6 +48,7 @@ struct SettingsView: View {
                     settings = GameSettings(
                         numberOfPlayers: selectedPlayers,
                         addTasks: addTasks,
+                        losingPlayerLeaves: losingPlayerLeaves,
                         timeToComplete: selectedTime
                     )
                 }) {
@@ -79,26 +83,8 @@ struct GameSettings: Identifiable, Hashable {
     let id = UUID()
     let numberOfPlayers: Int
     let addTasks: Bool
+    let losingPlayerLeaves: Bool
     let timeToComplete: Int
-}
-
-struct GameView: View {
-    let settings: GameSettings
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Game Started!")
-                .font(.largeTitle)
-                .bold()
-
-            Text("Players: \(settings.numberOfPlayers)")
-            Text("Add Tasks: \(settings.addTasks ? "Yes" : "No")")
-            Text("Time: \(settings.timeToComplete) min")
-
-            Spacer()
-        }
-        .padding()
-    }
 }
 
 struct RadioButtonSection<Option: Hashable, Content: View>: View {
@@ -155,5 +141,3 @@ struct ToggleSection: View {
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
-
-

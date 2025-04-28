@@ -24,19 +24,33 @@ struct SimpleModeView: View {
         ZStack {
             MultiTouchView(isCompleted: $isCompleted, settings: settings, viewRef: $customTouchView)
                 .ignoresSafeArea()
-
+            VStack {
+                Text("Simple Mode Game")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding()
+                Text("\(settings.numberOfPlayers) players")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding()
+            }
             if isCompleted {
                 VStack {
-                    Spacer()
-
                     VStack {
+                        Text("Game starts in:")
+                            .font(.title)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .padding()
                         Text("\(timerValue)")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                             .padding()
                     }
-                    .frame(width: 200, height: 200)
+                    .frame(width: 300, height: 150)
                     .background(Color(red: 114/255, green: 133/255, blue: 226/255))
                     .cornerRadius(20)
                     .shadow(radius: 10)

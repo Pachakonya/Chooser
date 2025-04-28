@@ -30,6 +30,18 @@ struct TasksModeView: View {
             MultiTouchView(isCompleted: $isCompleted, settings: settings, viewRef: $customTouchView)
                 .ignoresSafeArea()
             
+            VStack {
+                Text("Tasks Mode Game")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding()
+                Text("\(settings.numberOfPlayers) players")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding()
+            }
             if isTaskModeActive {
                 VStack(spacing: 30) {
                     // Заголовок с информацией о задании
@@ -98,16 +110,19 @@ struct TasksModeView: View {
                 .transition(.scale)
             } else if isCompleted {
                 VStack {
-                    Spacer()
-                    
                     VStack {
+                        Text("Game starts in:")
+                            .font(.title)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .padding()
                         Text("\(countDowmTimerValue)")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
                             .padding()
                     }
-                    .frame(width: 200, height: 200)
+                    .frame(width: 300, height: 150)
                     .background(Color(red: 114/255, green: 133/255, blue: 226/255))
                     .cornerRadius(20)
                     .shadow(radius: 10)
@@ -118,21 +133,6 @@ struct TasksModeView: View {
                 }
                 .onAppear {
                     startTimer()
-                }
-            }
-            
-            if let player = selectedPlayerNumber, didPlayerFailTask, !lastPlayerRemaining {
-                VStack {
-                    Spacer()
-                    Text("Player number \(player) loses")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black.opacity(0.7))
-                        .cornerRadius(12)
-                        .transition(.scale)
-                    Spacer()
                 }
             }
         }
@@ -192,7 +192,7 @@ struct TasksModeView: View {
     
     private func startTaskTimer() {
         taskTimer?.invalidate()
-        taskTimerValue = 10 // Reset task timer
+        taskTimerValue = settings.timeToComplete
         taskTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
             if taskTimerValue > 0 {
                 taskTimerValue -= 1
