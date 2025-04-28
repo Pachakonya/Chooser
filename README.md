@@ -14,7 +14,7 @@
 
 ## Requirements
 
-- iOS 18.4+
+- iOS 18+
 - Swift 6+
 - Xcode 16.3
 
