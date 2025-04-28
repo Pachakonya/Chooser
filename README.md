@@ -1,6 +1,6 @@
 # Chooser App
 
-**Chooser** is an interactive app built with SwiftUI, designed for randomly selecting players based on their touch interactions with the screen. Users can configure the number of players, tasks, and game levels before starting the random selection process. The app also offers different game modes, such as **Simple Mode** and **Task Mode**.
+**Chooser** is an interactive app built with combination of SwiftUI and UIKit, designed for randomly selecting players based on their touch interactions with the screen. Users can configure the number of players, tasks, and game levels before starting the random selection process. The app also offers different game modes, such as **Simple Mode** and **Task Mode**.
 
 ## Features
 
