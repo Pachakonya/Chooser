@@ -6,13 +6,14 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 
 struct SettingsView: View {
     @State private var selectedPlayers = 2
     @State private var addTasks = false
     @State private var losingPlayerLeaves = true
     @State private var selectedTime = 10
-
+    @State private var isLoading = false
     @State private var settings: GameSettings? = nil
 
     var body: some View {
@@ -44,23 +45,39 @@ struct SettingsView: View {
                     .background(Color.white)
                 }
                 Button(action: {
-                    // Формируем модель
-                    settings = GameSettings(
-                        numberOfPlayers: selectedPlayers,
-                        addTasks: addTasks,
-                        losingPlayerLeaves: losingPlayerLeaves,
-                        timeToComplete: selectedTime
-                    )
+                    if addTasks {
+                        fetchTasksFromDb()
+                    } else {
+                        settings = GameSettings(
+                            numberOfPlayers: selectedPlayers,
+                            addTasks: addTasks,
+                            losingPlayerLeaves: losingPlayerLeaves,
+                            timeToComplete: selectedTime,
+                            tasks: nil
+                        )
+                    }
+                    
                 }) {
-                    Text("Alga, kettik!")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .cornerRadius(16)
-                        .padding(.horizontal)
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(16)
+                            .padding(.horizontal)
+                    } else {
+                        Text("Alga, kettik!")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .font(.headline)
+                            .cornerRadius(16)
+                            .padding(.horizontal)
+                    }
                 }
+                .disabled(isLoading)
                 .padding(.vertical, 10)
                 .background(Color.white)
                 .navigationDestination(item: $settings) { settings in
@@ -75,6 +92,44 @@ struct SettingsView: View {
             .navigationBarHidden(true)
         }
     }
+    
+    private func fetchTasksFromDb() {
+        isLoading = true
+        var tasks: [String] = []
+        let db = Firestore.firestore()
+        db.collection("tasks").getDocuments { (snapshot, error) in
+            isLoading = false // Спрятать загрузку в любом случае
+            
+            if let _ = error {
+                tasks = ConstantValues.tasks // use default tasks
+                return
+            }
+            
+            guard let documents = snapshot?.documents else {
+                tasks = ConstantValues.tasks // use default tasks
+                return
+            }
+            
+            
+            for document in documents {
+                let data = document.data()
+                
+                if let dbTasks = data["tasks"] as? [String] {
+                    tasks = dbTasks
+                } else {
+                    tasks = ConstantValues.tasks // use default tasks
+                }
+            }
+                
+            settings = GameSettings(
+                numberOfPlayers: selectedPlayers,
+                addTasks: addTasks,
+                losingPlayerLeaves: losingPlayerLeaves,
+                timeToComplete: selectedTime,
+                tasks: tasks
+            )
+        }
+    }
 }
 
 // MARK: - Модель настроек
@@ -85,6 +140,7 @@ struct GameSettings: Identifiable, Hashable {
     let addTasks: Bool
     let losingPlayerLeaves: Bool
     let timeToComplete: Int
+    let tasks: [String]?
 }
 
 struct RadioButtonSection<Option: Hashable, Content: View>: View {

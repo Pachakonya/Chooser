@@ -175,7 +175,7 @@ struct TasksModeView: View {
     
     private func startTaskMode() {
         // Включаем режим с заданиями
-        guard let result = customTouchView?.pickRandomTouchLayer() else {
+        guard let result = customTouchView?.pickRandomTouchLayer(), let tasks = settings.tasks else {
             isCompleted = false
             return
         }
@@ -183,7 +183,7 @@ struct TasksModeView: View {
         selectedPlayerNumber = result.info.playerNumber
         selectedTouchId = result.id
         
-        currentTask = ConstantValues.tasks.randomElement()
+        currentTask = tasks.randomElement()
         isTaskModeActive = true
 
         // Запускаем таймер на выполнение задания
