@@ -9,17 +9,18 @@ import SwiftUI
 import FirebaseFirestore
 
 struct SettingsView: View {
+    @State private var lastWinner: Int? = nil
     @State private var selectedPlayers = 2
     @State private var addTasks = false
     @State private var losingPlayerLeaves = true
     @State private var selectedTime = 10
     @State private var isLoading = false
     @State private var settings: GameSettings? = nil
+    @State private var isLastWinnerLoading: Bool = true
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Fixed Header
                 Text("Settings")
                     .font(.largeTitle)
                     .bold()
@@ -27,6 +28,29 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                     .background(Color.white)
+                
+                if isLastWinnerLoading {
+                    ProgressView("Loading...")
+                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                } else {
+                    // Отображаем победителя, если он найден
+                    if let lastWinner = lastWinner {
+                        Text("Last winner: Player number \(lastWinner)")
+                            .font(.title2)
+                            .padding()
+                            .background(Color.green.opacity(0.9))
+                            .cornerRadius(12)
+                            .foregroundColor(.white)
+                            .padding(.horizontal)
+                    } else {
+                        Text("No winner found")
+                            .font(.title2)
+                            .foregroundColor(.red)
+                            .padding()
+                    }
+                }
 
                 ScrollView {
                     VStack(spacing: 20) {
@@ -90,37 +114,18 @@ struct SettingsView: View {
             }
             .background(Color.white)
             .navigationBarHidden(true)
+            .onAppear {
+                fetchLastWinner()
+            }
         }
     }
     
     private func fetchTasksFromDb() {
         isLoading = true
-        var tasks: [String] = []
-        let db = Firestore.firestore()
-        db.collection("tasks").getDocuments { (snapshot, error) in
-            isLoading = false // Спрятать загрузку в любом случае
+        
+        FirebaseManager.shared.getTasks { tasks in
+            isLoading = false
             
-            if let _ = error {
-                tasks = ConstantValues.tasks // use default tasks
-                return
-            }
-            
-            guard let documents = snapshot?.documents else {
-                tasks = ConstantValues.tasks // use default tasks
-                return
-            }
-            
-            
-            for document in documents {
-                let data = document.data()
-                
-                if let dbTasks = data["tasks"] as? [String] {
-                    tasks = dbTasks
-                } else {
-                    tasks = ConstantValues.tasks // use default tasks
-                }
-            }
-                
             settings = GameSettings(
                 numberOfPlayers: selectedPlayers,
                 addTasks: addTasks,
@@ -130,6 +135,26 @@ struct SettingsView: View {
             )
         }
     }
+    
+    private func fetchLastWinner() {
+        FirebaseManager.shared.getWinner { result in
+            DispatchQueue.main.async {
+                self.isLastWinnerLoading = false
+            }
+
+            switch result {
+            case .success(let winner):
+                DispatchQueue.main.async {
+                    self.lastWinner = winner
+                }
+            case .failed:
+                DispatchQueue.main.async {
+                    self.lastWinner = nil
+                }
+            }
+        }
+    }
+
 }
 
 // MARK: - Модель настроек

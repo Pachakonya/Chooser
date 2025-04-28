@@ -11,6 +11,8 @@ struct WinnerView: View {
     let winnerNumber: Int
     let onRestart: () -> Void
 
+    @State private var toastMessage: String = ""
+    @State private var showToast: Bool = false
     @State private var animate = false
 
     var body: some View {
@@ -52,6 +54,36 @@ struct WinnerView: View {
         }
         .onAppear {
             animate = true
+            FirebaseManager.shared.setWinner(winnerNumber: winnerNumber) { result in
+                    switch result {
+                    case .success:
+                        toastMessage = "Winner uploaded successfully! 🏆"
+                    case .failed:
+                        toastMessage = "Failed to upload winner 😢"
+                    }
+                    showToast = true
+
+                    // Hide the toast after 2 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        showToast = false
+                    }
+                }
         }
+        .overlay(
+            Group {
+                if showToast {
+                    Text(toastMessage)
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.7))
+                        .cornerRadius(10)
+                        .padding(.bottom, 50)
+                        .transition(.move(edge: .bottom))
+                        .animation(.easeInOut(duration: 0.5), value: showToast)
+                }
+            },
+            alignment: .bottom
+        )
     }
 }
