@@ -25,6 +25,7 @@ To get started with the project, clone this repository:
 ```bash
 git clone https://github.com/yourusername/Chooser.git
 ```
+Choose your own team in **Signing & Capabilities** in project settings
 
 ## Design and Development Process
 
@@ -39,8 +40,10 @@ The app integrates UIImpactFeedbackGenerator to provide haptic feedback when pla
 One of the main trade-offs was limiting the number of touches to match the number of players, to prevent performance issues and ensure smooth gameplay. Though additional touches could have been allowed, the game’s simplicity and performance were prioritized.
 
 ## Known Issues or Problems
-- The Task Mode does not yet include a dynamic task generator beyond the predefined tasks in ConstantValues.swift.
+- The Task Mode does not yet include a dynamic task generator beyond the predefined tasks in **FireStore Database**.
+- There were difficulties in handling smooth navigation between different screens, leading to occasional glitches in the user experience.
+- The system currently struggles to automatically start a new task once a player has been eliminated.
 
 ## Why This Technical Stack Was Chosen
 
-SwiftUI was chosen for its modern and declarative syntax, which allows for quick development and seamless integration with other iOS frameworks. It also provides powerful tools to manage dynamic layouts, which is ideal for building interactive, touch-based apps.
+I chose to use modern SwiftUI in combination with UIKit because I read that complex animations are better handled using CALayer. SwiftUI offers a modern and declarative syntax, which speeds up development and integrates well with other iOS frameworks. Additionally, it provides powerful tools for managing dynamic layouts, making it ideal for building interactive, touch-based apps.
